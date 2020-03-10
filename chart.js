@@ -1,72 +1,36 @@
-async function drawLineChart() {
-    dataset = await d3.json("data.json")
+async function loadAndTransform() {
+    dataset = await d3.json("https://rasulkireev.com/api/v1/writings/")
 
     // Parse Python Datetime string to JS date object
     dateParser = d3.utcParse("%Y-%m-%dT%H:%M:%S%Z")
     formatMonth = d3.timeFormat("%B")
     
     // Grouping data by month
-    const wordsByMonth = Array.from(
+    wordsByMonthArrayOfArrays = Array.from(
         d3.rollup(
             dataset, 
             v => d3.sum(v, d => d.word_count),  
             d => formatMonth(dateParser(d.date))
             )
         )
-
-    const yAccessor = d => d.word_count
-    const xAccessor = d => formatMonth(dateParser(d.date))
     
+    wordsByMonthArrayOfArrays.forEach(element => Object.assign({}, element))
 
-    console.table(dataset[0])
-    console.table(wordsByMonth[0])
-    console.log(yAccessor)
+    return wordsByMonthArrayOfArrays;
+}
 
-    let dimensions = {
-        width: window.innerWidth * 0.9,
-        height: 400,
-        margin: {
-          top: 15,
-          right: 15,
-          bottom: 40,
-          left: 60,
-        },
-      }
-      dimensions.boundedWidth = dimensions.width
-        - dimensions.margin.left
-        - dimensions.margin.right
-      dimensions.boundedHeight = dimensions.height
-        - dimensions.margin.top
-        - dimensions.margin.bottom
+async function drawLineChart() {
 
-    const wrapper = d3.select("#wrapper")
-        .append("svg")
-        .attr("width", dimensions.width)
-        .attr("height", dimensions.height)
+    const dataset = await loadAndTransform()
 
-        const bounds = wrapper.append("g")
-        .style("transform", `translate(${
-          dimensions.margin.left
-        }px, ${
-          dimensions.margin.top
-        }px)`)
+    // console.log(dataset);
 
-    // 4. Create Scales
-    const yScale = d3.scaleLinear()
-        .domain(d3.extent(dataset, yAccessor))
-        .range([dimensions.boundedHeight, 0])
+    const yAccessor = d => d[1]
+    const xAccessor = d => d[0]
 
-    const xScale = d3.scaleTime()
-        .domain(d3.extent(dataset, xAccessor))
-        .range([0,dimensions.boundedWidth])
+    // console.log(xAccessor(dataset[0]))
+    // console.log(yAccessor(dataset[0]))
 
-    // 5. Draw a Line
-    const lineGenerator = d3.line()
-        .x(d => xScale(xAccessor(d)))
-        .y(d => yScale(yAccessor(d)))
-    
-    const line = bounds.append("path")
-        .attr("d", lineGenerator(dataset))
 }
 
 drawLineChart()
