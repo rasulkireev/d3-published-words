@@ -1,23 +1,26 @@
-function WordCount(str) { 
-    return str.split(" ").length;
-}
-
-
 async function drawLineChart() {
-    const dataset = await d3.json("data.json")
+    dataset = await d3.json("data.json")
 
     // Parse Python Datetime string to JS date object
-    const dateParser = d3.utcParse("%Y-%m-%dT%H:%M:%S%Z")
-    const formatMonth = d3.timeFormat("%B")
+    dateParser = d3.utcParse("%Y-%m-%dT%H:%M:%S%Z")
+    formatMonth = d3.timeFormat("%B")
     
     // Grouping data by month
-    const wordsByMonth = Array.from(d3.group(dataset, d => formatMonth(dateParser(d.date))))
+    const wordsByMonth = Array.from(
+        d3.rollup(
+            dataset, 
+            v => d3.sum(v, d => d.word_count),  
+            d => formatMonth(dateParser(d.date))
+            )
+        )
 
-    const yAccessor = d => WordCount(d.body)
+    const yAccessor = d => d.word_count
     const xAccessor = d => formatMonth(dateParser(d.date))
     
 
+    console.table(dataset[0])
     console.table(wordsByMonth[0])
+    console.log(yAccessor)
 
     let dimensions = {
         width: window.innerWidth * 0.9,
