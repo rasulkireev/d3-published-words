@@ -32,14 +32,16 @@ async function drawLineChart() {
 
       // 2. Create chart dimensions
 
+  const width = 600
+
   let dimensions = {
-    width: window.innerWidth * 0.9,
-    height: 400,
+    width: width,
+    height: width * 0.6,
     margin: {
-      top: 15,
-      right: 15,
-      bottom: 40,
-      left: 60,
+      top: 30,
+      right: 10,
+      bottom: 50,
+      left: 50,
     },
   }
   dimensions.boundedWidth = dimensions.width
@@ -68,40 +70,53 @@ async function drawLineChart() {
   const yScale = d3.scaleLinear()
     .domain(d3.extent(dataset, yAccessor))
     .range([dimensions.boundedHeight, 0])
+    .nice()
 
   const xScale = d3.scaleTime()
     .domain(d3.extent(dataset, xAccessor))
     .range([0, dimensions.boundedWidth])
+    .nice()
 
   // 5. Draw data
 
-  const lineGenerator = d3.line()
-    .x(d => xScale(xAccessor(d)))
-    .y(d => yScale(yAccessor(d)))
+  const monthsGroup = bounds.append("g")
+  const monthGroups = monthsGroup.selectAll("g")
+      .data(dataset)
+      .enter().append("g")
+  
+  const barPadding = 1
 
-  const line = bounds.append("path")
-      .attr("d", lineGenerator(dataset))
-      .attr("fill", "none")
-      .attr("stroke", "#af9358")
-      .attr("stroke-width", 2)
+  const barRects = monthGroups.append("rect")
+      .attr("x", d => xScale(xAccessor(d)))
+      .attr("y", d => yScale(yAccessor(d)))
+      .attr("width", (width / 10))
+      .attr("height", d => dimensions.boundedHeight
+          - yScale(yAccessor(d)))
+      .attr("fill", "cornflowerblue")
+
 
   // 6. Draw peripherals
-
-  const yAxisGenerator = d3.axisLeft()
-    .scale(yScale)
-
-  const yAxis = bounds.append("g")
-    .call(yAxisGenerator)
+  const barText =  monthGroups.filter(yAccessor)
+    .append("text")
+    .attr("x", d => xScale(xAccessor(d)) + 30)
+    .attr("y", d => yScale(yAccessor(d)) - 5)
+    .text(yAccessor)
+    .style("text-anchor", "middle")
+    .attr("fill", "darkgrey")
+    .style("font-size", "14px")
+    .style("font-family", "sans-serif")
 
   const xAxisGenerator = d3.axisBottom()
     .scale(xScale)
-
   const xAxis = bounds.append("g")
     .call(xAxisGenerator)
-      .style("transform", `translateY(${
-        dimensions.boundedHeight
-      }px)`)
-
+    .style("transform",`translateY(${dimensions.boundedHeight}px)`)
+  const xAxisLabel = xAxis.append("text")
+    .attr("x", dimensions.boundedWidth / 2)
+    .attr("y", dimensions.margin.bottom - 10)
+    .attr("fill", "black")
+    .style("font-size", "1.4em")
+    .text("# of Words")
 }
 
 drawLineChart()
