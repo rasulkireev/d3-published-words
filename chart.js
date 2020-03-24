@@ -1,5 +1,6 @@
 async function loadAndTransform() {
     dataset = await d3.json("https://rasulkireev.com/api/v1/writings/")
+    console.log(dataset)
 
     // Parse Python Datetime string to JS date object
     dateParser = d3.utcParse("%Y-%m-%dT%H:%M:%S%Z")
@@ -24,23 +25,23 @@ async function drawLineChart() {
     
     const yAccessor = d => d[1]
     const dateParser = d3.timeParse("%B %Y")
-    const xAccessor = d => dateParser(d[0])
+    const xAccessor = d => d[0]
     
     console.log(dataset);
-    console.log(xAccessor(dataset[0]))
+    console.log(xAccessor)
     console.log(yAccessor(dataset[0]))
 
       // 2. Create chart dimensions
 
-  const width = 600
+  const width = 700
 
   let dimensions = {
     width: width,
     height: width * 0.6,
     margin: {
-      top: 30,
+      top: 60,
       right: 10,
-      bottom: 50,
+      bottom: 70,
       left: 50,
     },
   }
@@ -72,10 +73,10 @@ async function drawLineChart() {
     .range([dimensions.boundedHeight, 0])
     .nice()
 
-  const xScale = d3.scaleTime()
-    .domain(d3.extent(dataset, xAccessor))
+  const xScale = d3.scaleBand()
+    .domain(dataset.map(d => xAccessor(d)))
     .range([0, dimensions.boundedWidth])
-    .nice()
+    .padding(0.2)
 
   // 5. Draw data
 
@@ -89,13 +90,21 @@ async function drawLineChart() {
   const barRects = monthGroups.append("rect")
       .attr("x", d => xScale(xAccessor(d)))
       .attr("y", d => yScale(yAccessor(d)))
-      .attr("width", (width / 10))
-      .attr("height", d => dimensions.boundedHeight
-          - yScale(yAccessor(d)))
+      .attr("width", xScale.bandwidth())
+      .attr("height", d => dimensions.boundedHeight - yScale(yAccessor(d)))
       .attr("fill", "cornflowerblue")
 
 
   // 6. Draw peripherals
+  const chartTitle = bounds.append("text")
+    .attr("x", dimensions.boundedWidth / 2)
+    .attr("y", -15)
+    .style("text-anchor", "middle")
+    .text("# of Published Words")
+    .style("font-size", "20px")
+    .style("font-family", "sans-serif")
+  
+  
   const barText =  monthGroups.filter(yAccessor)
     .append("text")
     .attr("x", d => xScale(xAccessor(d)) + 30)
@@ -110,13 +119,13 @@ async function drawLineChart() {
     .scale(xScale)
   const xAxis = bounds.append("g")
     .call(xAxisGenerator)
-    .style("transform",`translateY(${dimensions.boundedHeight}px)`)
-  const xAxisLabel = xAxis.append("text")
-    .attr("x", dimensions.boundedWidth / 2)
-    .attr("y", dimensions.margin.bottom - 10)
-    .attr("fill", "black")
-    .style("font-size", "1.4em")
-    .text("# of Words")
+    .style("transform",`translate(0, ${dimensions.boundedHeight}px)`)
+    .selectAll("text")	
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", function(d) {return "rotate(-25)"})
+  
 }
 
 drawLineChart()
