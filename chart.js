@@ -111,7 +111,7 @@ async function drawLineChart() {
     .attr("y", d => yScale(yAccessor(d)) - 5)
     .text(yAccessor)
     .style("text-anchor", "middle")
-    .attr("fill", "darkgrey")
+    .attr("fill", "black")
     .style("font-size", "14px")
     .style("font-family", "sans-serif")
 
@@ -120,7 +120,8 @@ async function drawLineChart() {
   const xAxis = bounds.append("g")
     .call(xAxisGenerator)
     .style("transform",`translate(0, ${dimensions.boundedHeight}px)`)
-    .selectAll("text")	
+    .selectAll("text")
+      .style("font-size", "14px")
       .style("text-anchor", "end")
       .attr("dx", "-.8em")
       .attr("dy", ".15em")
